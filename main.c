@@ -30,7 +30,6 @@ int ft_ping(struct t_socket sock, int *seq)
 	sock.fd = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	if (sock.fd < 0)
 	{
-		printf(strerror(errno));
 		fprintf(stderr, "ERROR : socket() failed\n");
 		return (0);
 	}
@@ -61,6 +60,16 @@ int ft_ping(struct t_socket sock, int *seq)
 	if (icmp_recv_header->type != ICMP_ECHOREPLY || icmp_recv_header->code != 0)
 	{
 		fprintf(stderr, "ERROR : invalid packet received (code)\n");
+		return (0);
+	}
+	if (icmp_recv_header->un.echo.id != icmp_header->un.echo.id)
+	{
+		fprintf(stderr, "ERROR : invalid packet received (id is not matching)\n");
+		return (0);
+	}
+	if (icmp_recv_header->un.echo.sequence != icmp_header->un.echo.sequence)
+	{
+		fprintf(stderr, "ERROR : invalid packet received (sequence is not matching)\n");
 		return (0);
 	}
 	printf("success");
