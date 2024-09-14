@@ -15,6 +15,15 @@
 #include <arpa/inet.h>
 #include <netdb.h>
 
+struct icmp_header
+{
+	uint8_t type;
+	uint8_t code;
+	uint16_t checksum;
+	uint16_t id;
+	uint16_t seq;
+};
+
 struct t_socket
 {
 	struct sockaddr_in dst, src;
