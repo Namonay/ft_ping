@@ -18,6 +18,10 @@ uint16_t calculate_checksum(uint16_t *data, int len)
 	return (~checksum);
 }
 
+void print_packet(struct icmp_header *packet)
+{
+	printf("type : %d code : %d\nchecksum : %d id : %d seq : %d\n", packet->type, packet->code, packet->checksum, packet->id, packet->seq);
+}
 
 int ft_ping(int sock, int *seq, struct sockaddr_in src, struct sockaddr_in dst)
 {
@@ -64,7 +68,8 @@ int ft_ping(int sock, int *seq, struct sockaddr_in src, struct sockaddr_in dst)
 		printf("%c", data2[i]);
 	if (icmp_recv_hdr->type != ICMP_ECHOREPLY || icmp_recv_hdr->code != 0)
 	{
-		printf("%d %d\n", icmp_recv_hdr->type, icmp_recv_hdr->code);
+		print_packet(icmp_recv_hdr);
+		print_packet(icmp_hdr);
 		fprintf(stderr, "ERROR : invalid packet received (code)\n");
 		return (0);
 	}
