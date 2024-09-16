@@ -19,23 +19,26 @@ uint16_t calculate_checksum(uint16_t *data, int len)
 
 double get_timestamp()
 {
-  struct timeval timestamp;
-  gettimeofday(&timestamp, NULL);
-  return (timestamp.tv_sec + (double)timestamp.tv_usec / 1000000);
+	struct timeval timestamp;
+
+	gettimeofday(&timestamp, NULL);
+	return (timestamp.tv_sec + (double)timestamp.tv_usec / 1000000);
 }
 
 int ft_ping(int sock, int seq, struct sockaddr_in dst)
 {
-	unsigned char data[64];
-	struct icmp_header *icmp_hdr = (struct icmp_header *)data;
+	unsigned char		data[64];
+	struct icmp_header	*icmp_hdr = (struct icmp_header *)data;
 
 	memset(data, 0, sizeof(data));
 	memset(icmp_hdr, 0, sizeof(*icmp_hdr));
+
 	icmp_hdr->type = ICMP_ECHO;
 	icmp_hdr->code = 0;
 	icmp_hdr->id = getpid();
 	icmp_hdr->seq = seq;
 	icmp_hdr->checksum = calculate_checksum((uint16_t *)icmp_hdr, sizeof(icmp_hdr));
+
 	if (sendto(sock, data, sizeof(data), 0, (struct sockaddr *)&dst, sizeof(dst)) == -1)
 	{
 		fprintf(stderr, "ERROR : sendto() failed\n");
@@ -46,41 +49,43 @@ int ft_ping(int sock, int seq, struct sockaddr_in dst)
 
 int ft_recv(int sock, int seq, char *ip, double start)
 {
-	unsigned char data[64];
+	unsigned char		data[64];
 	struct icmp_header *icmp_hdr = (struct icmp_header *)(data + 20);
-	int n_bytes;
-	struct sockaddr_in addr;
-	int len = sizeof(addr);
-	double time;
+	int					n_bytes;
+	struct sockaddr_in	addr;
+	int					len = sizeof(addr);
+	double				time;
 
 	n_bytes = recvfrom(sock, data, sizeof(data), 0, (struct sockaddr *)&addr, (socklen_t *)&len);
-        while (icmp_hdr->type != 0 && n_bytes > 0)
-                n_bytes = recvfrom(sock, data, sizeof(data), 0, (struct sockaddr *)&addr, (socklen_t *)&len);
-        time = (get_timestamp() - start) * 1000000;
-        if (icmp_hdr->seq != seq || calculate_checksum((uint16_t *)data, sizeof(data)))
-                return (-1);
+	while (icmp_hdr->type != 0 && n_bytes > 0)
+		n_bytes = recvfrom(sock, data, sizeof(data), 0, (struct sockaddr *)&addr, (socklen_t *)&len);
+	time = (get_timestamp() - start) * 1000000;
+	if (icmp_hdr->seq != seq || calculate_checksum((uint16_t *)data, sizeof(data)))
+		return (-1);
 	printf("%d bytes from %s: icmp_seq:%d time:%5.3fms\n", n_bytes, ip, icmp_hdr->seq, time);
-        return (0);
+		return (0);
 }
 
 char *get_ip_by_hostname(char *hostname)
 {
-  struct hostent *he;
-  struct in_addr **addr_list;
-  he = gethostbyname(hostname);
-  
-  addr_list = (struct in_addr **)he->h_addr_list;
-  return (inet_ntoa(*addr_list[0]));
+  struct hostent	*he;
+  struct in_addr	**addr_list;
+
+	he = gethostbyname(hostname);
+	addr_list = (struct in_addr **)he->h_addr_list;
+	return (inet_ntoa(*addr_list[0]));
 }
+
 int main(int argc, char **argv)
 {
-	int sock;
-	struct sockaddr_in dst;
-	int seq = 1;
-        char *ip;
-        double start;
-        int n_packet_sent = 0;
-        int n_packet_recv = 0;
+	int					sock;
+	struct sockaddr_in	dst;
+	int					seq = 1;
+	char				*ip;
+	double				start;
+	int					n_packet_sent = 0;
+	int					n_packet_recv = 0;
+
 	if (argc != 2 || argv[1] == NULL || argv[1][0] == 0)
 	{
 		fprintf(stderr, "ERROR : usage : ping {-v?} [ADRESS]\n");
@@ -95,14 +100,14 @@ int main(int argc, char **argv)
 	dst.sin_port = 0;
 	sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
 	ip = get_ip_by_hostname(argv[1]);
-        if (sock < 0)
-        {
-                fprintf(stderr, "ERROR : socket() failed\n");
-                return (0);
-        }
+	if (sock < 0)
+	{
+		fprintf(stderr, "ERROR : socket() failed\n");
+		return (0);
+	}
 	while (1)
 	{
-	        start = get_timestamp();
+		start = get_timestamp();
 		ft_ping(sock, seq, dst);
 		ft_recv(sock, seq, ip, start);
 		seq++;
