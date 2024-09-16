@@ -52,7 +52,7 @@ int ft_recv(int sock, int seq, char *ip)
 	struct icmp_header *icmp_recv_hdr = (struct icmp_header *)(data + 20);
 	int len;
 	struct sockaddr_in addr;
-	recvfrom(sock, data, sizeof(data), 0, &addr, &len);
+	recvfrom(sock, data, sizeof(data), 0, (struct sockaddr *)&addr, &len);
 
 	// while (recvfrom(sock, data, sizeof(data), 0, &addr, &len) > 0 && icmp_recv_hdr->type != 0);
 	printf("%d bytes from %s: icmp_seq:%d time:placeholder", len, ip, icmp_recv_hdr->seq);
@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 		return (0);
 	}
 	ip = inet_ntoa(dst.sin_addr);
-	bind(sock, &dst, sizeof(dst));
+	bind(sock, (struct sockaddr *)&dst, sizeof(dst));
 	while (1)
 	{
 		ft_ping(sock, seq, dst);
