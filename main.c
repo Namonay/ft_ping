@@ -14,7 +14,6 @@ uint16_t calculate_checksum(uint16_t *data, int len)
 
 	while (checksum >> 16)
 		checksum = (checksum & 0xFFFF) + (checksum >> 16);
-	printf("checksum is : %X\n", (uint16_t)~checksum);
 	return (~checksum);
 }
 
@@ -43,19 +42,22 @@ int ft_ping(int sock, int seq, struct sockaddr_in dst)
 		fprintf(stderr, "ERROR : sendto() failed\n");
 		return (0);
 	}
+	printf("sent : type : %d code : %d id: %d seq : %d checksum : %X\n", icmp_hdr->type, icmp_hdr->code, icmp_hdr->id, icmp_hdr->seq, icmp_hdr->checksum);
 	return (1);
 }
 
 int ft_recv(int sock, int seq, char *ip)
 {
 	unsigned char data[2048];
-	struct icmp_header *icmp_recv_hdr = (struct icmp_header *)(data + 20);
+	struct icmp_header *icmp_hdr = (struct icmp_header *)(data + 20);
 	int len;
+	int n_bytes;
 	struct sockaddr_in addr;
-	recvfrom(sock, data, sizeof(data), 0, (struct sockaddr *)&addr, &len);
+	n_bytes = recvfrom(sock, data, sizeof(data), 0, (struct sockaddr *)&addr, &len);
 
 	// while (recvfrom(sock, data, sizeof(data), 0, &addr, &len) > 0 && icmp_recv_hdr->type != 0);
-	printf("%d bytes from %s: icmp_seq:%d time:placeholder", len, ip, icmp_recv_hdr->seq);
+	printf("received : type : %d code : %d id: %d seq : %d checksum : %X\n", icmp_hdr->type, icmp_hdr->code, icmp_hdr->id, icmp_hdr->seq, icmp_hdr->checksum);
+	printf("%d bytes from %s: icmp_seq:%d time:placeholder", n_bytes, ip, icmp_hdr->seq);
 
 }
 
