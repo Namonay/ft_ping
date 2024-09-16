@@ -49,6 +49,7 @@ int ft_ping(int sock, int seq, struct sockaddr_in dst)
 		fprintf(stderr, "ERROR : sendto() failed\n");
 		return (0);
 	}
+	n_packet_sent++;
 	return (1);
 }
 
@@ -67,6 +68,7 @@ int ft_recv(int sock, int seq, char *ip, double start)
 	time = (get_timestamp() - start) * 1000000;
 	if (icmp_hdr->seq != seq || calculate_checksum((uint16_t *)data, sizeof(data)))
 		return (-1);
+	n_packet_recv++;
 	printf("%d bytes from %s: icmp_seq:%d time:%5.3fms\n", n_bytes, ip, icmp_hdr->seq, time);
 		return (0);
 }
@@ -109,6 +111,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "ERROR : %s is an invalid adress\n", argv[1]);
 		return (0);
 	}
+	init_signal();
 	dst.sin_family = AF_INET;
 	dst.sin_port = 0;
 	sock = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
@@ -127,7 +130,7 @@ int main(int argc, char **argv)
 		sleep(1);
 	}
 	printf("--- %s ping statistics ---\n", ip);
-	printf("%d packed transmitted %d received, %5.1f%% packet loss", n_packet_sent, n_packet_recv, (double)(n_packet_sent / n_packet_sent) * 100);
+	printf("%d packed transmitted, %d received, %2.1f%% packet loss\n", n_packet_sent, n_packet_recv, (double)((n_packet_sent / n_packet_sent) - 1) * 100);
 	close(sock);
 	return (0);
 }
