@@ -1,5 +1,10 @@
 #include "ft_ping.h"
 
+int					n_packet_sent = 0;
+int					n_packet_recv = 0;
+char				*ip;
+char				loop = 1;
+
 uint16_t calculate_checksum(uint16_t *data, int len)
 {
 	uint32_t checksum = 0;
@@ -76,15 +81,23 @@ char *get_ip_by_hostname(char *hostname)
 	return (inet_ntoa(*addr_list[0]));
 }
 
+void handler(int code)
+{
+	(void)code;
+	loop = 0;
+}
+
+void init_signal()
+{
+	signal(SIGINT, handler);
+}
+
 int main(int argc, char **argv)
 {
 	int					sock;
 	struct sockaddr_in	dst;
 	int					seq = 1;
-	char				*ip;
 	double				start;
-	int					n_packet_sent = 0;
-	int					n_packet_recv = 0;
 
 	if (argc != 2 || argv[1] == NULL || argv[1][0] == 0)
 	{
@@ -105,7 +118,7 @@ int main(int argc, char **argv)
 		fprintf(stderr, "ERROR : socket() failed\n");
 		return (0);
 	}
-	while (1)
+	while (loop)
 	{
 		start = get_timestamp();
 		ft_ping(sock, seq, dst);
@@ -113,6 +126,8 @@ int main(int argc, char **argv)
 		seq++;
 		sleep(1);
 	}
+	printf("--- %s ping statistics ---\n", ip);
+	printf("%d packed transmitted %d received, %5.1f%% packet loss", n_packet_sent, n_packet_recv, (double)(n_packet_sent / n_packet_sent) * 100);
 	close(sock);
 	return (0);
 }
