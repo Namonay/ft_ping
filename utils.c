@@ -68,6 +68,8 @@ double get_avg(double *timestamp_array)
     double avg = 0;
     int i = 0;
 
+    if (timestamp_array[0] == 0)
+        return (0);
     while (timestamp_array[i])
     {
         avg += timestamp_array[i];

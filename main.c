@@ -42,7 +42,7 @@ void ft_recv(int sock, uint16_t seq, char *ip, double start)
 	time = (get_timestamp() - start) * 1000;
 	checksum = icmp_hdr->checksum;
 	icmp_hdr->checksum = 0;
-	if (icmp_hdr->seq != seq || calculate_checksum((uint16_t *)icmp_hdr, sizeof(*icmp_hdr)) != checksum)
+	if (icmp_hdr->seq != seq || calculate_checksum((uint16_t *)icmp_hdr, sizeof(*icmp_hdr)) != checksum) // if checksum or sequence is invalid
 		return;
 	fill_timestamp_array(&stats, time);
 	stats.n_packet_recv++;
