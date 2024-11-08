@@ -1,11 +1,5 @@
-<<<<<<< HEAD
 .vscode
 .cache
 generate_json.py
 ft_ping
 
-=======
-*.o
-a.out
-.vscode
->>>>>>> 00fcdacf31561477259f851446360c0b7fc79eb6

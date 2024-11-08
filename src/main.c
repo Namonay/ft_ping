@@ -5,7 +5,7 @@ bool				loop = true;
 
 int ft_ping(int sock, uint16_t seq, struct sockaddr_in *dst)
 {
-	unsigned char		data[64];
+	unsigned char		data[PACKET_SIZE];
 	struct icmp_header	*icmp_hdr = (struct icmp_header *)data;
 
 	memset(data, 0, sizeof(data));
@@ -25,9 +25,9 @@ int ft_ping(int sock, uint16_t seq, struct sockaddr_in *dst)
 	return (1);
 }
 
-void ft_recv(int sock, uint16_t seq, char *ip, double start)
+int ft_recv(int sock, uint16_t seq, double start)
 {
-	unsigned char		data[64];
+	unsigned char		data[PACKET_SIZE];
 	struct icmp_header *icmp_hdr = (struct icmp_header *)(data + 20);
 	int					n_bytes;
 	struct sockaddr_in	addr;
@@ -38,16 +38,16 @@ void ft_recv(int sock, uint16_t seq, char *ip, double start)
 	memset(data, 0, sizeof(data));
 	n_bytes = recvfrom(sock, data, sizeof(data), 0, (struct sockaddr *)&addr, (socklen_t *)&len);
 	if (n_bytes < 1)
-		return;
+		return (1);
 	time = (get_timestamp() - start) * 1000;
 	checksum = icmp_hdr->checksum;
 	icmp_hdr->checksum = 0;
 	if (icmp_hdr->seq != seq || make_checksum((uint16_t *)icmp_hdr, sizeof(*icmp_hdr)) != checksum)
-		return;
+		return (0);
 	fill_timestamp_array(&stats, time);
 	stats.n_packet_recv++;
-	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%5.3fms\n", n_bytes, ip, icmp_hdr->seq, (uint8_t)data[8], time);
-	return;
+	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%5.3fms\n", n_bytes, inet_ntoa(addr.sin_addr), icmp_hdr->seq, (uint8_t)data[8], time);
+	return (1);
 }
 
 void handler(int code)
@@ -90,7 +90,7 @@ bool init_socket(int *sock, struct sockaddr_in *dst, char *host)
 void print_recap(char *ip)
 {
 	printf("--- %s ping statistics ---\n", ip);
-	printf("%d packed transmitted, %d received, %0.0f%% packet loss\n", stats.n_packet_sent, stats.n_packet_recv, (double)(100 - (stats.n_packet_recv / stats.n_packet_sent) * 100));
+	printf("%d packed transmitted, %d received, %0.0f%% packet loss\n", stats.n_packet_sent, stats.n_packet_recv, (double)(stats.n_packet_sent - stats.n_packet_recv) / stats.n_packet_sent * 100);
 	printf("round-trip min/avg/max/stddev = %5.3f/%5.3f/%5.3f/%5.3f ms\n", get_min(stats.timestamp_array), get_avg(stats.timestamp_array), get_max(stats.timestamp_array), get_stddev(stats.timestamp_array));
 }
 
@@ -116,7 +116,7 @@ int main(int argc, char **argv)
 				return (1);
 		}
 	}
-	if (argc < 2 || argv[optind] == NULL || argv[optind][0] == 0)
+	if (argc < 2 || argv[optind] == NULL || argv[optind][0] == 0) // optind is a value given by getopt() that's equal to the first argument that isn't a flag
 	{
 		fprintf(stderr, "ERROR : usage : %s {-v?} [ADRESS]\n", argv[0]);
 		return (0);
@@ -134,7 +134,7 @@ int main(int argc, char **argv)
 		start = get_timestamp();
 		if (ft_ping(sock, seq, &dst) == 0)
 			break;
-		ft_recv(sock, seq, ip, start);
+		while (!ft_recv(sock, seq, start));
 		seq++;
 		sleep(1);
 	}

@@ -17,7 +17,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 
-#define PACKET_SIZE 64
+#define PACKET_SIZE 56
 
 struct icmp_header
 {
