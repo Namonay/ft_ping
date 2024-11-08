@@ -14,7 +14,7 @@ int ft_ping(int sock, uint16_t seq, struct sockaddr_in *dst)
 	icmp_hdr->code = 0;
 	icmp_hdr->id = getpid();
 	icmp_hdr->seq = seq;
-	icmp_hdr->checksum = calculate_checksum((uint16_t *)icmp_hdr, sizeof(icmp_hdr));
+	icmp_hdr->checksum = make_checksum((uint16_t *)icmp_hdr, sizeof(icmp_hdr));
 
 	if (sendto(sock, data, sizeof(data), 0, (struct sockaddr *)dst, sizeof(struct sockaddr_in)) == -1)
 	{
@@ -42,7 +42,7 @@ void ft_recv(int sock, uint16_t seq, char *ip, double start)
 	time = (get_timestamp() - start) * 1000;
 	checksum = icmp_hdr->checksum;
 	icmp_hdr->checksum = 0;
-	if (icmp_hdr->seq != seq || calculate_checksum((uint16_t *)icmp_hdr, sizeof(*icmp_hdr)) != checksum)
+	if (icmp_hdr->seq != seq || make_checksum((uint16_t *)icmp_hdr, sizeof(*icmp_hdr)) != checksum)
 		return;
 	fill_timestamp_array(&stats, time);
 	stats.n_packet_recv++;
@@ -93,6 +93,7 @@ void print_recap(char *ip)
 	printf("%d packed transmitted, %d received, %0.0f%% packet loss\n", stats.n_packet_sent, stats.n_packet_recv, (double)(100 - (stats.n_packet_recv / stats.n_packet_sent) * 100));
 	printf("round-trip min/avg/max/stddev = %5.3f/%5.3f/%5.3f/%5.3f ms\n", get_min(stats.timestamp_array), get_avg(stats.timestamp_array), get_max(stats.timestamp_array), get_stddev(stats.timestamp_array));
 }
+
 int main(int argc, char **argv)
 {
 	int					sock;

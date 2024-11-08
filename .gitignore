@@ -1,1 +1,5 @@
 .vscode
+.cache
+generate_json.py
+ft_ping
+

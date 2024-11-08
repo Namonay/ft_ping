@@ -15,6 +15,7 @@
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
 #include <netdb.h>
+#include <fcntl.h>
 
 #define PACKET_SIZE 64
 
@@ -34,7 +35,7 @@ struct packet_stats
 	double		timestamp_array[65536];
 };
 
-uint16_t calculate_checksum(uint16_t *data, int len);
+uint16_t make_checksum(uint16_t *data, int len);
 double get_timestamp();
 struct in_addr get_addr_by_hostname(char *hostname);
 double get_stddev(double *timestamp_array);

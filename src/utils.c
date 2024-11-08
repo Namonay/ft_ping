@@ -1,7 +1,8 @@
 #include "ft_ping.h"
 
-uint16_t calculate_checksum(uint16_t *data, int len)
+uint16_t make_checksum(uint16_t *data, int len)
 {
+	// make the checksum of data
 	uint32_t checksum = 0;
 	int i = 0;
 
@@ -43,6 +44,7 @@ void fill_timestamp_array(struct packet_stats *stats, double time)
 
 double get_min(double *timestamp_array)
 {
+	// get the smallest element of the timestamp_array
     double min = timestamp_array[0];
     for (int i = 1; timestamp_array[i]; i++)
     {
@@ -54,6 +56,7 @@ double get_min(double *timestamp_array)
 
 double get_max(double *timestamp_array)
 {
+	// get the biggest element of the timestamp_array
     double max = timestamp_array[0];
     for (int i = 1; timestamp_array[i]; i++)
     {
@@ -65,6 +68,7 @@ double get_max(double *timestamp_array)
 
 double get_avg(double *timestamp_array)
 {
+	// get the average of elements in timestamp_array
     double avg = 0;
     int i = 0;
 
@@ -78,6 +82,7 @@ double get_avg(double *timestamp_array)
 
 double get_stddev(double *timestamp_array)
 {
+	// get the standard deviation of elements in timestamp_array
     float avg = get_avg(timestamp_array);
     float variance = 0;
     float variance_tmp;

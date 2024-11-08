@@ -1,0 +1,12 @@
+[
+    {
+        "directory": "/nfs/homes/vvaas/42/ft_ping",
+        "command": "clang++ -std=c++20 -I includes -c /nfs/homes/vvaas/42/ft_ping/src/main.c -o /nfs/homes/vvaas/42/ft_ping/objs/ma.o",
+        "file": "/nfs/homes/vvaas/42/ft_ping/src/main.c"
+    },
+    {
+        "directory": "/nfs/homes/vvaas/42/ft_ping",
+        "command": "clang++ -std=c++20 -I includes -c /nfs/homes/vvaas/42/ft_ping/src/utils.c -o /nfs/homes/vvaas/42/ft_ping/objs/uti.o",
+        "file": "/nfs/homes/vvaas/42/ft_ping/src/utils.c"
+    }
+]
