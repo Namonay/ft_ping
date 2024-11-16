@@ -3,7 +3,7 @@
 struct packet_stats	stats;
 bool				loop = true;
 
-int ft_ping(int sock, uint16_t seq, struct sockaddr_in *dst)
+static int ft_ping(const int sock, const uint16_t seq, const struct sockaddr_in *dst)
 {
 	unsigned char		data[PACKET_SIZE];
 	struct icmp_header	*icmp_hdr = (struct icmp_header *)data;
@@ -25,7 +25,7 @@ int ft_ping(int sock, uint16_t seq, struct sockaddr_in *dst)
 	return (1);
 }
 
-int ft_recv(int sock, uint16_t seq, double start)
+static int ft_recv(const int sock, const uint16_t seq, const double start, const bool quiet)
 {
 	unsigned char		data[PACKET_SIZE];
 	struct icmp_header *icmp_hdr = (struct icmp_header *)(data + 20);
@@ -46,22 +46,23 @@ int ft_recv(int sock, uint16_t seq, double start)
 		return (0);
 	fill_timestamp_array(&stats, time);
 	stats.n_packet_recv++;
-	printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%5.3fms\n", n_bytes, inet_ntoa(addr.sin_addr), icmp_hdr->seq, (uint8_t)data[8], time);
+	if (!quiet)
+		printf("%d bytes from %s: icmp_seq=%d ttl=%d time=%5.3fms\n", n_bytes, inet_ntoa(addr.sin_addr), icmp_hdr->seq, (uint8_t)data[8], time);
 	return (1);
 }
 
-void handler(int code)
+static void signal_handler(int code)
 {
 	(void)code;
-	loop = 0;
+	loop = false;
 }
 
-void init_signal()
+static void init_signal()
 {
-	signal(SIGINT, handler);
+	signal(SIGINT, signal_handler);
 }
 
-bool init_socket(int *sock, struct sockaddr_in *dst, char *host)
+static bool init_socket(int *sock, struct sockaddr_in *dst, char *host)
 {
 	struct timeval timeout;
 
@@ -87,58 +88,42 @@ bool init_socket(int *sock, struct sockaddr_in *dst, char *host)
 	return (true);
 }
 
-void print_recap(char *ip)
-{
-	printf("--- %s ping statistics ---\n", ip);
-	printf("%d packed transmitted, %d received, %0.0f%% packet loss\n", stats.n_packet_sent, stats.n_packet_recv, (double)(stats.n_packet_sent - stats.n_packet_recv) / stats.n_packet_sent * 100);
-	printf("round-trip min/avg/max/stddev = %5.3f/%5.3f/%5.3f/%5.3f ms\n", get_min(stats.timestamp_array), get_avg(stats.timestamp_array), get_max(stats.timestamp_array), get_stddev(stats.timestamp_array));
-}
-
 int main(int argc, char **argv)
 {
-	int					sock;
-	struct sockaddr_in	dst;
+	int					socket_fd;
+	struct sockaddr_in	dst_addr;
 	char				*ip;
 	uint16_t			seq = 1;
 	double				start;
-	int					flags;
-	bool				verbose = false;
+	struct flags		flags = {false, false, false, 1, -1, -1};
 
-	while ((flags = getopt(argc, argv, "v?")) != -1)
-	{
-		switch (flags)
-		{
-			case 'v':
-				verbose = true;
-				break;
-			case '?':
-				fprintf(stdout, "usage : %s {-v?} [ADRESS]\n", argv[0]);
-				return (1);
-		}
-	}
-	if (argc < 2 || argv[optind] == NULL || argv[optind][0] == 0) // optind is a value given by getopt() that's equal to the first argument that isn't a flag
-	{
-		fprintf(stderr, "ERROR : usage : %s {-v?} [ADRESS]\n", argv[0]);
+	if (parse_opt(argc, argv, &flags) == false)
 		return (0);
-	}
 	init_signal();
-	if (!init_socket(&sock, &dst, argv[optind]))
+	if (!init_socket(&socket_fd, &dst_addr, argv[optind]))
 		return (-1);
 	ip = inet_ntoa(get_addr_by_hostname(argv[optind]));
-	if (verbose)
-		fprintf(stdout, "PING %s (%s) : %d data bytes, id 0x%04x = %d\n", argv[optind], ip, PACKET_SIZE, getpid(), getpid());
+	if (flags.verbose)
+		printf("PING %s (%s) : %d data bytes, id 0x%04x = %d\n", argv[optind], ip, (PACKET_SIZE - 8), getpid(), getpid());
 	else
-		fprintf(stdout, "PING %s (%s) : %d data bytes\n", argv[optind], ip, PACKET_SIZE);
+		printf("PING %s (%s) : %d data bytes\n", argv[optind], ip, (PACKET_SIZE - 8));
 	while (loop)
 	{
 		start = get_timestamp();
-		if (ft_ping(sock, seq, &dst) == 0)
+		if (ft_ping(socket_fd, seq, &dst_addr) == 0)
 			break;
-		while (!ft_recv(sock, seq, start));
+		while (!ft_recv(socket_fd, seq, start, flags.quiet));
 		seq++;
-		sleep(1);
+		if (flags.count != -1)
+			flags.count--;
+		if (flags.count == 0)
+			break;
+		if (flags.preload_count <= 0)
+			usleep(flags.interval * 1000000);
+		else
+			flags.preload_count--;
 	}
-	print_recap(argv[optind]);
-	close(sock);
+	print_recap(argv[optind], stats);
+	close(socket_fd);
 	return (0);
 }

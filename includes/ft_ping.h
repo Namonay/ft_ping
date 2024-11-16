@@ -1,12 +1,12 @@
 #pragma once
 
-
 #include <string.h>
 #include <stdio.h>
 #include <unistd.h>
 #include <signal.h>
 #include <stdbool.h>
 #include <math.h>
+#include <stdlib.h>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -17,7 +17,7 @@
 #include <netdb.h>
 #include <fcntl.h>
 
-#define PACKET_SIZE 56
+#define PACKET_SIZE 64
 
 struct icmp_header
 {
@@ -35,11 +35,32 @@ struct packet_stats
 	double		timestamp_array[65536];
 };
 
-uint16_t make_checksum(uint16_t *data, int len);
-double get_timestamp();
-struct in_addr get_addr_by_hostname(char *hostname);
-double get_stddev(double *timestamp_array);
-void fill_timestamp_array(struct packet_stats *sockstats, double time);
-double get_avg(double *timestamp_array);
-double get_min(double *timestamp_array);
-double get_max(double *timestamp_array);
+struct flags
+{
+	bool verbose;
+	bool quiet;
+	bool flood;
+	double interval;
+	int preload_count;
+	int count;
+};
+
+//	PACKET UTILS
+uint16_t		make_checksum(uint16_t *data, int len);
+struct in_addr	get_addr_by_hostname(char *hostname);
+
+//	MATH
+double			get_stddev(const double *timestamp_array);
+double			get_avg(const double *timestamp_array);
+double			get_min(const double *timestamp_array);
+double			get_max(const double *timestamp_array);
+long			ft_atoi(const char *nptr);
+
+//	VERBOSE
+void			print_help(void);
+bool			parse_opt(int argc, char **argv, struct flags *flags);
+
+// STATS
+void			print_recap(char *ip, const struct packet_stats stats);
+void			fill_timestamp_array(struct packet_stats *sockstats, double time);
+double			get_timestamp();

@@ -1,7 +1,8 @@
 NAME	= ./ft_ping
 
 SRCS	=	src/main.c \
-			src/utils.c
+			src/utils.c \
+			src/flags.c
 
 
 OBJ_DIR	= objs

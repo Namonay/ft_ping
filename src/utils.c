@@ -42,7 +42,31 @@ void fill_timestamp_array(struct packet_stats *stats, double time)
     stats->timestamp_array[stats->n_packet_recv] = time;
 }
 
-double get_min(double *timestamp_array)
+bool ft_isdigit(const char n)
+{
+    return (n >= '0' && n <= '9');
+}
+
+long	ft_atoi(const char *nptr)
+{
+	unsigned long	i = 0;
+
+    if (nptr == NULL)
+        return (-1);    
+    for (int j = 0; nptr[j]; j++)
+    {
+        if (!ft_isdigit(nptr[j]))
+            return (-1);
+    }
+	while (*nptr)
+	{
+		i = i * 10 + *nptr - '0';
+		nptr++;
+	}
+	return (i);
+}
+
+double get_min(const double *timestamp_array)
 {
 	// get the smallest element of the timestamp_array
     double min = timestamp_array[0];
@@ -54,7 +78,7 @@ double get_min(double *timestamp_array)
     return (min);
 }
 
-double get_max(double *timestamp_array)
+double get_max(const double *timestamp_array)
 {
 	// get the biggest element of the timestamp_array
     double max = timestamp_array[0];
@@ -66,7 +90,7 @@ double get_max(double *timestamp_array)
     return (max);
 }
 
-double get_avg(double *timestamp_array)
+double get_avg(const double *timestamp_array)
 {
 	// get the average of elements in timestamp_array
     double avg = 0;
@@ -82,7 +106,7 @@ double get_avg(double *timestamp_array)
     return (avg /= i);
 }
 
-double get_stddev(double *timestamp_array)
+double get_stddev(const double *timestamp_array)
 {
 	// get the standard deviation of elements in timestamp_array
     float avg = get_avg(timestamp_array);
@@ -95,4 +119,11 @@ double get_stddev(double *timestamp_array)
         variance += variance_tmp * variance_tmp;
     }
     return (sqrt(variance));
+}
+
+void print_recap(char *ip, const struct packet_stats stats)
+{
+	printf("--- %s ping statistics ---\n", ip);
+	printf("%d packed transmitted, %d received, %0.0f%% packet loss\n", stats.n_packet_sent, stats.n_packet_recv, (double)(stats.n_packet_sent - stats.n_packet_recv) / stats.n_packet_sent * 100);
+	printf("round-trip min/avg/max/stddev = %5.3f/%5.3f/%5.3f/%5.3f ms\n", get_min(stats.timestamp_array), get_avg(stats.timestamp_array), get_max(stats.timestamp_array), get_stddev(stats.timestamp_array));
 }
