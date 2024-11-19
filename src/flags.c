@@ -3,14 +3,16 @@
 const char *flag_list[] = 
 {
     "usage : ping [OPTIONS ...] [ADDRESS]",
+	"Send ICMP ECHO_REQUEST packets to network hosts.",
 	"  -c [COUNT]	stop after COUNT packets have been sent",
 	"  -f			flood mode",
 	"  -i [NUMBER]	send a ping at NUMBER seconds intervals",
 	"  -l [NUMBER]	send NUMBER ping as fast as possible then continue in normal mode",
 	"  -q			quiet mode",
+	"  -t [NUMBER]  set the packet TTL (time to live) to NUMBER",
     "  -v,			verbose output",
     "  -?,			print this help page",
-
+	NULL,
 };
 
 void print_help(void)
@@ -22,7 +24,8 @@ void print_help(void)
 bool parse_opt(int argc, char **argv, struct flags *flags)
 {
 	int flag;
-	while ((flag = getopt(argc, argv, "c:fi:l:qv?")) != -1)
+	static bool interval = false;
+	while ((flag = getopt(argc, argv, "c:fi:l:qt:v?")) != -1) 
 	{
 		switch (flag)
 		{
@@ -50,6 +53,7 @@ bool parse_opt(int argc, char **argv, struct flags *flags)
 					return (false);
 				}
 				flags->interval = atof(optarg);
+				interval = true;	
 				break;
 
 			case 'c':
@@ -62,7 +66,7 @@ bool parse_opt(int argc, char **argv, struct flags *flags)
 				break;
 
 			case 'f':
-				if (flags->interval != -1)
+				if (interval)
 				{
 					fprintf(stderr, "%s: -f and -i flags are incompatible\n%s\n", argv[0], flag_list[0]);
 					return (false);
@@ -79,6 +83,14 @@ bool parse_opt(int argc, char **argv, struct flags *flags)
 					return (false);
 				}
 				flags->preload_count = ft_atoi(optarg);
+				break;
+			case 't':
+				if (ft_atoi(optarg) == -1)
+				{
+					fprintf(stderr, "%s: invalid value '%s'\n%s\n", argv[0], optarg, flag_list[0]);
+					return (false);
+				}
+				flags->ttl = ft_atoi(optarg);
 				break;
 		}
 	}

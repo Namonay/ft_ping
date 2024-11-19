@@ -2,7 +2,8 @@ NAME	= ./ft_ping
 
 SRCS	=	src/main.c \
 			src/utils.c \
-			src/flags.c
+			src/flags.c  \
+			src/packets.c
 
 
 OBJ_DIR	= objs
@@ -31,8 +32,6 @@ $(OBJ_DIR)/%.o: %.c
 	@$(CC) $(CFLAGS) $(COPTS) -c $< -o $@
 
 all:		 $(NAME)
-
-
 
 $(NAME):	$(OBJ_DIR) $(OBJS)
 	@echo "\e[1;32m[linking   "$(MODE)" {"$(CC)"}...]\e[1;00m "$@
