@@ -1,7 +1,7 @@
 #include "ft_ping.h"
 #include "icmp_codes.h"
 
-static const char *get_error_message(uint8_t type, uint8_t code)
+static const char *get_error_message(const uint8_t type, const uint8_t code)
 {
     switch(type)
     {
@@ -14,7 +14,7 @@ static const char *get_error_message(uint8_t type, uint8_t code)
     }
     return (NULL);
 }
-bool parse_packet(struct net_packet packet, uint16_t seq, uint16_t checksum)
+bool parse_packet(const struct net_packet packet, const uint16_t seq, const uint16_t checksum)
 {
     if (packet.icmp_hdr->seq != seq || make_checksum((uint16_t *)packet.icmp_hdr, sizeof(*packet.icmp_hdr)) != checksum)
 		return (false);
@@ -23,7 +23,7 @@ bool parse_packet(struct net_packet packet, uint16_t seq, uint16_t checksum)
     return (true);
 }
 
-void print_packet_error(struct net_packet packet)
+void print_packet_error(const struct net_packet packet)
 {
     fprintf(stderr, "%d bytes from %s:  %s\n", packet.n_bytes, inet_ntoa(packet.addr.sin_addr), get_error_message(packet.icmp_hdr->type, packet.icmp_hdr->code));
 }

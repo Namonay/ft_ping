@@ -15,7 +15,7 @@ const char *flag_list[] =
 	NULL,
 };
 
-void print_help(void)
+static void print_help(void)
 {
 	for (int i = 0; flag_list[i]; i++)
 		printf("%s\n", flag_list[i]);

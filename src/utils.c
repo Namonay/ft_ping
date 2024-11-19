@@ -1,6 +1,6 @@
 #include "ft_ping.h"
 
-uint16_t make_checksum(uint16_t *data, int len)
+uint16_t make_checksum(const uint16_t *data, int len)
 {
 	// make the checksum of data
 	uint32_t checksum = 0;
