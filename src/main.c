@@ -10,8 +10,8 @@ static int ft_ping(const int sock, const uint16_t seq, const struct sockaddr_in 
 	memset(packet.data, 0, sizeof(packet.data));
 
 	packet.icmp_hdr = (struct net_icmp_header *)packet.data;
-	packet.icmp_hdr->type = 8;
-	packet.icmp_hdr->code = 0;
+	packet.icmp_hdr->type = 8; // ICMP_ECHO
+	packet.icmp_hdr->code = 0; // Always 0 for a ICMP_ECHO
 	packet.icmp_hdr->id = getpid();
 	packet.icmp_hdr->seq = seq;
 	packet.icmp_hdr->checksum = make_checksum((uint16_t *)packet.icmp_hdr, sizeof(packet.icmp_hdr));
@@ -35,7 +35,7 @@ static int ft_recv(const int sock, const uint16_t seq, const double start, const
 	double					time;
 	uint16_t				checksum;
 
-	packet.icmp_hdr = (struct net_icmp_header *)(packet.data + 20);
+	packet.icmp_hdr = (struct net_icmp_header *)(packet.data + 20); // get the packet icmp_header (starts at 20 bytes)
 	memset(packet.data, 0, sizeof(packet.data));
 	packet.n_bytes = recvfrom(sock, packet.data, sizeof(packet.data), 0, (struct sockaddr *)&packet.addr, (socklen_t *)&len);
 	if (packet.n_bytes < 1)
@@ -78,7 +78,7 @@ static bool init_socket(int *sock, struct sockaddr_in *dst, char *host, int ttl)
 
 	dst->sin_family = AF_INET;
 	dst->sin_port = 0;
-	if (gethostbyname(host) == NULL && inet_aton(host, &dst->sin_addr) == 0)
+	if (gethostbyname(host) == NULL && inet_aton(host, &dst->sin_addr) == 0) // Resolve the ip of the host and check if the ip is valid
 	{
 		fprintf(stderr, "ERROR : %s is an unknown host\n", host);
 		return (false);
@@ -93,7 +93,7 @@ static bool init_socket(int *sock, struct sockaddr_in *dst, char *host, int ttl)
 	timeout.tv_usec = 0;
 	setsockopt(*sock, SOL_SOCKET, SO_RCVTIMEO, &timeout, sizeof(timeout)); // use the timeval struct to set a timeout to our socket
 	if (ttl != -1)
-		setsockopt(*sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
+		setsockopt(*sock, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl)); // set the ttl (Time To Live) value if the parameter is given
 	return (true);
 }
 
@@ -110,7 +110,7 @@ int main(int argc, char **argv)
 		return (0);
 	if (!init_socket(&socket_fd, &dst_addr, argv[optind], flags.ttl))
 		return (-1);
-	ip = inet_ntoa(get_addr_by_hostname(argv[optind]));
+	ip = inet_ntoa(get_addr_by_hostname(argv[optind])); // get the ip as a string
 	if (flags.verbose)
 		printf("PING %s (%s) : %d data bytes, id 0x%04x = %d\n", argv[optind], ip, (PACKET_SIZE - 8), getpid(), getpid());
 	else
@@ -127,10 +127,10 @@ int main(int argc, char **argv)
 			flags.count--;
 		if (flags.count == 0)
 			break;
-		if (flags.preload_count <= 0)
-			usleep(flags.interval * 1000000);
-		else
+		if (flags.preload_count > 0)
 			flags.preload_count--;
+		else
+			usleep(flags.interval * 1000000);
 	}
 	print_recap(argv[optind], stats);
 	close(socket_fd);
